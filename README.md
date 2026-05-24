@@ -1,5 +1,5 @@
 # 📖 Words Reader
-### `03_words_reading_test.html`
+
 
 A vocabulary flashcard app for practising reading Japanese words written in hiragana and katakana, with meanings, romaji, and example sentences.
 
@@ -86,4 +86,4 @@ A summary screen shows your score (%), correct count, missed count, and "almost"
 
 ---
 
-*Part of the Kana Learning Suite · see also `01_big_kana_test.html` and `02_kana_flashcards.html`*
+*Part of the Kana Learning Suite · see also `Kana flash repository` and `kana master test repository`*
