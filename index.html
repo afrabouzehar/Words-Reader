@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japanese Words Reading Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117;
+    --card-bg: #151821;
+    --panel: #1c2030;
+    --border: #252b3d;
+    --accent: #7c6aff;
+    --accent2: #ff6a6a;
+    --accent3: #6affb8;
+    --text: #eeeef5;
+    --muted: #6b7280;
+    --correct: #6affb8;
+    --wrong: #ff6a6a;
+    --gold: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Star-field bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(124,106,255,.4) 0, transparent 0),
+      radial-gradient(1px 1px at 80% 15%, rgba(106,255,184,.3) 0, transparent 0),
+      radial-gradient(1.5px 1.5px at 45% 60%, rgba(255,106,106,.3) 0, transparent 0),
+      radial-gradient(1px 1px at 70% 80%, rgba(124,106,255,.3) 0, transparent 0),
+      radial-gradient(1px 1px at 20% 90%, rgba(106,255,184,.2) 0, transparent 0);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orb */
+  body::after {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,106,255,0.08) 0%, transparent 70%);
+    top: -150px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 4vw, 32px);
+    font-weight: 800;
+    color: var(--text);
+  }
+  .logo-text em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .level-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .level-pill {
+    padding: 7px 16px;
+    border-radius: 40px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .level-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .level-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .level-pill.l2.active { background: var(--accent3); border-color: var(--accent3); color: var(--bg); }
+  .level-pill.l3.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+
+  /* ── STATS ── */
+  .stats-row {
+    position: relative; z-index: 10;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-cell {
+    flex: 1;
+    padding: 16px 24px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .stat-num.c { color: var(--correct); }
+  .stat-num.w { color: var(--wrong); }
+  .stat-num.g { color: var(--gold); }
+  .stat-label { color: var(--muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── MAIN ── */
+  main {
+    position: relative; z-index: 1;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Category indicator */
+  .category-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .cat-tag {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .cat-tag.n { background: rgba(124,106,255,.15); color: var(--accent); }
+  .cat-tag.v { background: rgba(106,255,184,.15); color: var(--accent3); }
+  .cat-tag.a { background: rgba(255,209,102,.15); color: var(--gold); }
+  .cat-tag.c { background: rgba(255,106,106,.15); color: var(--wrong); }
+  .progress-micro {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── FLASHCARD ── */
+  .flashcard-scene {
+    perspective: 1200px;
+    height: 320px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    user-select: none;
+  }
+  .flashcard-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.4,0,.2,1);
+  }
+  .flashcard-inner.flipped { transform: rotateX(180deg); }
+
+  .fc-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .fc-front {
+    background: var(--card-bg);
+  }
+  .fc-front::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(124,106,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .fc-back {
+    background: var(--panel);
+    transform: rotateX(180deg);
+  }
+  .fc-back::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(106,255,184,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .word-kana {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(52px,10vw,80px);
+    color: var(--text);
+    line-height: 1.1;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .word-romaji-hint {
+    font-size: 14px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .tap-hint {
+    position: absolute;
+    bottom: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: .6;
+  }
+  .tap-hint::after {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--muted);
+    margin: 6px auto 0;
+    border-radius: 2px;
+  }
+
+  /* Back of card */
+  .back-meaning {
+    font-size: clamp(26px, 5vw, 36px);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .back-detail {
+    text-align: center;
+    max-width: 380px;
+  }
+  .back-kana-show {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 22px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .back-romaji {
+    font-size: 14px;
+    color: var(--accent3);
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .back-example {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .back-example strong {
+    color: var(--text);
+    font-style: normal;
+  }
+
+  /* ── ANSWER BUTTONS ── */
+  .answer-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .answer-btn {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+  }
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(124,106,255,0.08);
+  }
+  .answer-btn .icon { font-size: 18px; flex-shrink: 0; }
+  .answer-btn.correct-choice { border-color: var(--correct); background: rgba(106,255,184,0.1); color: var(--correct); }
+  .answer-btn.wrong-choice   { border-color: var(--wrong);   background: rgba(255,106,106,0.1);   color: var(--wrong); }
+  .answer-btn:disabled { cursor: default; }
+
+  /* ── SELF-GRADE ── */
+  .self-grade-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .sg-btn {
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    border: 1px solid transparent;
+    transition: all .15s;
+  }
+  .sg-btn:hover { transform: translateY(-2px); }
+  .sg-wrong { background: rgba(255,106,106,0.12); color: var(--wrong); border-color: var(--wrong); }
+  .sg-again { background: rgba(255,209,102,0.12); color: var(--gold); border-color: var(--gold); }
+  .sg-correct { background: rgba(106,255,184,0.12); color: var(--correct); border-color: var(--correct); }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    height: 3px;
+    background: var(--border);
+    margin-bottom: 32px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 2px;
+    transition: width .4s ease;
+  }
+
+  /* ── COMPLETE ── */
+  .complete {
+    display: none;
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .complete.show { display: block; }
+  .complete-big {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(48px, 10vw, 80px);
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .complete-msg { color: var(--muted); font-size: 15px; margin-bottom: 40px; }
+  .complete-grid {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .cg-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    min-width: 110px;
+  }
+  .cg-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 700; }
+  .cg-lbl { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .restart-btn {
+    padding: 14px 36px;
+    margin: 8px;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    border: 1px solid transparent;
+    transition: all .2s;
+  }
+  .restart-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .restart-btn.secondary { background: transparent; color: var(--muted); border-color: var(--border); }
+  .restart-btn:hover { transform: translateY(-2px); }
+
+  #quiz-main { position: relative; z-index: 2; }
+
+  @media (max-width: 500px) {
+    header, .stats-row .stat-cell { padding-left: 16px; padding-right: 16px; }
+    .answer-row { grid-template-columns: 1fr; }
+    .self-grade-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-text">Words <em>Reader</em></div>
+  <div class="level-pills">
+    <button class="level-pill active l1" data-level="1" onclick="setLevel(1)">Level 1 · Basics</button>
+    <button class="level-pill l2" data-level="2" onclick="setLevel(2)">Level 2 · Daily</button>
+    <button class="level-pill l3" data-level="3" onclick="setLevel(3)">Level 3 · Advanced</button>
+    <button class="level-pill" data-level="0" onclick="setLevel(0)">All Levels</button>
+  </div>
+</header>
+
+<div class="stats-row">
+  <div class="stat-cell"><span class="stat-num c" id="sC">0</span><span class="stat-label">Known</span></div>
+  <div class="stat-cell"><span class="stat-num w" id="sW">0</span><span class="stat-label">Missed</span></div>
+  <div class="stat-cell"><span class="stat-num g" id="sG">0</span><span class="stat-label">Remaining</span></div>
+  <div class="stat-cell"><span class="stat-num" id="sPct" style="color:var(--accent)">0%</span><span class="stat-label">Score</span></div>
+</div>
+
+<main>
+  <div id="quiz-main">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pBar"></div></div>
+
+    <div class="category-strip">
+      <div class="cat-tag n" id="catTag">NOUN</div>
+      <span class="progress-micro" id="cardCount">1 / 30</span>
+    </div>
+
+    <!-- FLASHCARD -->
+    <div class="flashcard-scene" id="fcScene" onclick="flipCard()">
+      <div class="flashcard-inner" id="fcInner">
+        <div class="fc-face fc-front">
+          <div class="word-kana" id="fcKana">ねこ</div>
+          <div class="word-romaji-hint" id="fcHint">hiragana</div>
+          <div class="tap-hint">tap to reveal</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="back-detail">
+            <div class="back-kana-show" id="fcKanaBack">ねこ</div>
+            <div class="back-romaji" id="fcRomajiBack">NEKO</div>
+            <div class="back-meaning" id="fcMeaning">cat</div>
+            <div class="back-example" id="fcExample"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MULTIPLE CHOICE MODE -->
+    <div id="mcMode">
+      <div class="answer-row" id="mcAnswers"></div>
+    </div>
+
+    <!-- SELF GRADE MODE -->
+    <div id="sgMode" style="display:none">
+      <div class="self-grade-row">
+        <button class="sg-btn sg-wrong" onclick="grade('wrong')">✕ Didn't know</button>
+        <button class="sg-btn sg-again" onclick="grade('again')">↻ Almost</button>
+        <button class="sg-btn sg-correct" onclick="grade('correct')">✓ Knew it!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="complete" id="completeScreen">
+    <div class="complete-big" id="cBig">85%</div>
+    <div class="complete-msg" id="cMsg">Well done! Keep it up!</div>
+    <div class="complete-grid">
+      <div class="cg-box"><div class="cg-num" style="color:var(--correct)" id="ccC">0</div><div class="cg-lbl">Known</div></div>
+      <div class="cg-box"><div class="cg-num" style="color:var(--wrong)" id="ccW">0</div><div class="cg-lbl">Missed</div></div>
+      <div class="cg-box"><div class="cg-num" style="color:var(--gold)" id="ccA">0</div><div class="cg-lbl">Almost</div></div>
+    </div>
+    <button class="restart-btn primary" onclick="restartMissed()">Retry Missed</button>
+    <button class="restart-btn secondary" onclick="restartAll()">New Deck</button>
+  </div>
+</main>
+
+<script>
+// ── WORD DATA ─────────────────────────────────────────────────────────────────
+const words = [
+  // Level 1 – Basics
+  {kana:'ねこ',rom:'neko',en:'cat',cat:'n',ex:'ねこがいます。(There is a cat.)',lv:1},
+  {kana:'いぬ',rom:'inu',en:'dog',cat:'n',ex:'いぬがすきです。(I like dogs.)',lv:1},
+  {kana:'みず',rom:'mizu',en:'water',cat:'n',ex:'みずをのみます。(I drink water.)',lv:1},
+  {kana:'パン',rom:'pan',en:'bread',cat:'n',ex:'パンをたべます。(I eat bread.)',lv:1},
+  {kana:'たべる',rom:'taberu',en:'to eat',cat:'v',ex:'すしをたべる。(I eat sushi.)',lv:1},
+  {kana:'のむ',rom:'nomu',en:'to drink',cat:'v',ex:'おちゃをのむ。(I drink tea.)',lv:1},
+  {kana:'おおきい',rom:'ookii',en:'big',cat:'a',ex:'おおきいいえ。(A big house.)',lv:1},
+  {kana:'ちいさい',rom:'chiisai',en:'small',cat:'a',ex:'ちいさいねこ。(A small cat.)',lv:1},
+  {kana:'あか',rom:'aka',en:'red',cat:'n',ex:'あかいりんご。(A red apple.)',lv:1},
+  {kana:'あおい',rom:'aoi',en:'blue / pale',cat:'a',ex:'あおいそら。(A blue sky.)',lv:1},
+  {kana:'きれい',rom:'kirei',en:'pretty / clean',cat:'a',ex:'きれいなはな。(Pretty flowers.)',lv:1},
+  {kana:'でんしゃ',rom:'densha',en:'train',cat:'n',ex:'でんしゃにのる。(Ride the train.)',lv:1},
+  {kana:'がっこう',rom:'gakkou',en:'school',cat:'n',ex:'がっこうへいく。(Go to school.)',lv:1},
+  {kana:'せんせい',rom:'sensei',en:'teacher',cat:'n',ex:'せんせいがいます。(There is a teacher.)',lv:1},
+  {kana:'ともだち',rom:'tomodachi',en:'friend',cat:'n',ex:'ともだちとあそぶ。(Play with a friend.)',lv:1},
+
+  // Level 2 – Daily life
+  {kana:'かいもの',rom:'kaimono',en:'shopping',cat:'n',ex:'かいものにいく。(Go shopping.)',lv:2},
+  {kana:'りょうり',rom:'ryouri',en:'cooking / cuisine',cat:'n',ex:'りょうりをする。(I cook.)',lv:2},
+  {kana:'しごと',rom:'shigoto',en:'work / job',cat:'n',ex:'しごとがある。(I have work.)',lv:2},
+  {kana:'やすみ',rom:'yasumi',en:'rest / holiday',cat:'n',ex:'やすみをとる。(Take a break.)',lv:2},
+  {kana:'おしえる',rom:'oshieru',en:'to teach / tell',cat:'v',ex:'えいごをおしえる。(Teach English.)',lv:2},
+  {kana:'はなす',rom:'hanasu',en:'to speak / talk',cat:'v',ex:'にほんごではなす。(Speak Japanese.)',lv:2},
+  {kana:'むずかしい',rom:'muzukashii',en:'difficult',cat:'a',ex:'むずかしいもんだい。(A difficult problem.)',lv:2},
+  {kana:'たのしい',rom:'tanoshii',en:'fun / enjoyable',cat:'a',ex:'たのしいパーティー。(A fun party.)',lv:2},
+  {kana:'でんわ',rom:'denwa',en:'phone / telephone',cat:'n',ex:'でんわをかける。(Make a phone call.)',lv:2},
+  {kana:'びょういん',rom:'byouin',en:'hospital',cat:'n',ex:'びょういんへいく。(Go to hospital.)',lv:2},
+  {kana:'にほんご',rom:'nihongo',en:'Japanese language',cat:'n',ex:'にほんごをならう。(Learn Japanese.)',lv:2},
+  {kana:'えいご',rom:'eigo',en:'English language',cat:'n',ex:'えいごがはなせる。(Can speak English.)',lv:2},
+  {kana:'きょうだい',rom:'kyoudai',en:'siblings',cat:'n',ex:'きょうだいがいる。(I have siblings.)',lv:2},
+  {kana:'おなかがすく',rom:'onaka ga suku',en:'to be hungry',cat:'v',ex:'おなかがすきました。(I got hungry.)',lv:2},
+  {kana:'あたらしい',rom:'atarashii',en:'new',cat:'a',ex:'あたらしいくるま。(A new car.)',lv:2},
+
+  // Level 3 – Advanced
+  {kana:'けいざい',rom:'keizai',en:'economy',cat:'n',ex:'けいざいがわるい。(The economy is bad.)',lv:3},
+  {kana:'かんがえる',rom:'kangaeru',en:'to think / consider',cat:'v',ex:'よくかんがえる。(Think carefully.)',lv:3},
+  {kana:'きんちょう',rom:'kinchou',en:'tension / nervousness',cat:'n',ex:'きんちょうする。(To feel nervous.)',lv:3},
+  {kana:'きけん',rom:'kiken',en:'dangerous',cat:'a',ex:'きけんなばしょ。(A dangerous place.)',lv:3},
+  {kana:'けんきゅう',rom:'kenkyuu',en:'research',cat:'n',ex:'けんきゅうをする。(Do research.)',lv:3},
+  {kana:'かいはつ',rom:'kaihatsu',en:'development',cat:'n',ex:'ソフトをかいはつする。(Develop software.)',lv:3},
+  {kana:'ようやく',rom:'youyaku',en:'finally / at last',cat:'c',ex:'ようやくおわった。(It finally ended.)',lv:3},
+  {kana:'かならず',rom:'kanarazu',en:'certainly / without fail',cat:'c',ex:'かならずいきます。(I will certainly go.)',lv:3},
+  {kana:'むかし',rom:'mukashi',en:'long ago / once upon a time',cat:'n',ex:'むかしむかし…(Long, long ago…)',lv:3},
+  {kana:'ちかごろ',rom:'chikagoro',en:'recently / these days',cat:'c',ex:'ちかごろいそがしい。(Busy these days.)',lv:3},
+  {kana:'なるほど',rom:'naruhodo',en:'I see / indeed',cat:'c',ex:'なるほど、そうか。(I see, is that so.)',lv:3},
+  {kana:'かさなる',rom:'kasanaru',en:'to overlap / pile up',cat:'v',ex:'しごとがかさなる。(Work piles up.)',lv:3},
+  {kana:'ひとりぼっち',rom:'hitoribocchi',en:'all alone / lonely',cat:'n',ex:'ひとりぼっちだ。(I am all alone.)',lv:3},
+  {kana:'おもいやり',rom:'omoiyari',en:'consideration / empathy',cat:'n',ex:'おもいやりがある。(Shows empathy.)',lv:3},
+  {kana:'こころざし',rom:'kokorozashi',en:'ambition / aspiration',cat:'n',ex:'たかいこころざし。(High aspirations.)',lv:3},
+];
+
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+
+const catColors={'n':'n','v':'v','a':'a','c':'c'};
+const catNames={'n':'NOUN','v':'VERB','a':'ADJECTIVE','c':'EXPRESSION'};
+
+let deck=[], idx=0, correctCount=0, wrongCount=0, againCards=[];
+let flipped=false, currentLevel=1, mcMode=true;
+
+function setLevel(lv){
+  currentLevel=lv;
+  document.querySelectorAll('.level-pill').forEach(p=>{
+    p.classList.remove('active','l1','l2','l3');
+    if(parseInt(p.dataset.level)===lv){
+      p.classList.add('active');
+      if(lv===1) p.classList.add('l1');
+      else if(lv===2) p.classList.add('l2');
+      else if(lv===3) p.classList.add('l3');
+    }
+  });
+  buildDeck(false);
+}
+
+function buildDeck(fromAgain){
+  let pool;
+  if(fromAgain) pool=againCards.length>0?againCards:words.filter(w=>currentLevel===0||w.lv===currentLevel);
+  else pool=words.filter(w=>currentLevel===0||w.lv===currentLevel);
+  deck=shuffle(pool);
+  idx=0; correctCount=0; wrongCount=0; againCards=[];
+  flipped=false;
+  document.getElementById('completeScreen').classList.remove('show');
+  document.getElementById('quiz-main').style.display='';
+  renderCard();
+  updateStats();
+}
+
+function renderCard(){
+  const w=deck[idx];
+  const typeHint=w.kana.charCodeAt(0)>=0x30A0?'katakana':'hiragana';
+
+  document.getElementById('fcKana').textContent=w.kana;
+  document.getElementById('fcHint').textContent=typeHint;
+  document.getElementById('fcKanaBack').textContent=w.kana;
+  document.getElementById('fcRomajiBack').textContent=w.rom.toUpperCase();
+  document.getElementById('fcMeaning').textContent=w.en;
+  document.getElementById('fcExample').innerHTML=w.ex?`<strong>Example:</strong> ${w.ex}`:'';
+
+  const ct=document.getElementById('catTag');
+  ct.textContent=catNames[w.cat]||'WORD';
+  ct.className='cat-tag '+(catColors[w.cat]||'n');
+
+  document.getElementById('cardCount').textContent=`${idx+1} / ${deck.length}`;
+  document.getElementById('pBar').style.width=(idx/deck.length*100)+'%';
+
+  document.getElementById('fcInner').classList.remove('flipped');
+  flipped=false;
+
+  // Determine mode: MC for first half, self-grade for second, or use MC always for lv1
+  mcMode=true;
+  if(currentLevel>=2 && idx>deck.length/2) mcMode=false;
+
+  if(mcMode) renderMC(w);
+  document.getElementById('mcMode').style.display=mcMode?'':'none';
+  document.getElementById('sgMode').style.display=mcMode?'none':'';
+}
+
+function renderMC(correct){
+  const container=document.getElementById('mcAnswers');
+  container.innerHTML='';
+  const pool=words.filter(w=>w.en!==correct.en);
+  const opts=shuffle([correct,...shuffle(pool).slice(0,3)]);
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='answer-btn';
+    btn.innerHTML=`<span class="icon">📝</span>${opt.en}`;
+    btn.onclick=()=>checkMC(btn,opt,correct,container);
+    container.appendChild(btn);
+  });
+}
+
+function checkMC(btn,chosen,correct,container){
+  container.querySelectorAll('.answer-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent.trim().replace('📝','').trim()===correct.en){
+      b.classList.add('correct-choice');
+      b.innerHTML=`<span class="icon">✓</span>${correct.en}`;
+    }
+  });
+  if(chosen.en===correct.en){
+    btn.classList.add('correct-choice');
+    correctCount++;
+  } else {
+    btn.classList.add('wrong-choice');
+    btn.innerHTML=`<span class="icon">✕</span>${chosen.en}`;
+    wrongCount++;
+    againCards.push(correct);
+  }
+  updateStats();
+  setTimeout(()=>advance(),1100);
+}
+
+function flipCard(){
+  if(!flipped){
+    flipped=true;
+    document.getElementById('fcInner').classList.add('flipped');
+    if(!mcMode){
+      // show self-grade after flip
+      document.getElementById('sgMode').style.display='';
+    }
+  }
+}
+
+function grade(result){
+  if(result==='correct') correctCount++;
+  else if(result==='wrong'){ wrongCount++; againCards.push(deck[idx]); }
+  else if(result==='again') againCards.push(deck[idx]);
+  updateStats();
+  advance();
+}
+
+function advance(){
+  if(idx<deck.length-1){
+    idx++;
+    renderCard();
+  } else {
+    showComplete();
+  }
+}
+
+function updateStats(){
+  const rem=deck.length-idx-(flipped?1:0);
+  document.getElementById('sC').textContent=correctCount;
+  document.getElementById('sW').textContent=wrongCount;
+  document.getElementById('sG').textContent=Math.max(0,deck.length-correctCount-wrongCount);
+  const done=correctCount+wrongCount;
+  const pct=done>0?Math.round(correctCount/done*100):0;
+  document.getElementById('sPct').textContent=pct+'%';
+}
+
+function showComplete(){
+  document.getElementById('quiz-main').style.display='none';
+  document.getElementById('pBar').style.width='100%';
+  const done=correctCount+wrongCount;
+  const pct=done>0?Math.round(correctCount/done*100):100;
+  document.getElementById('cBig').textContent=pct+'%';
+  document.getElementById('ccC').textContent=correctCount;
+  document.getElementById('ccW').textContent=wrongCount;
+  document.getElementById('ccA').textContent=againCards.length;
+  const msgs=[
+    {min:90,t:'🌸 Excellent! You\'re reading Japanese fluently!'},
+    {min:75,t:'🎌 Great job! Your vocabulary is growing fast!'},
+    {min:60,t:'📚 Good effort! A bit more practice will get you there!'},
+    {min:0, t:'🌱 Keep studying! Every card brings you closer!'},
+  ];
+  document.getElementById('cMsg').textContent=msgs.find(m=>pct>=m.min).t;
+  document.getElementById('completeScreen').classList.add('show');
+}
+
+function restartMissed(){
+  if(againCards.length===0) restartAll();
+  else buildDeck(true);
+}
+function restartAll(){ buildDeck(false); }
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='ArrowUp'){ e.preventDefault(); flipCard(); }
+  if(!mcMode && flipped){
+    if(e.key==='1') grade('wrong');
+    if(e.key==='2') grade('again');
+    if(e.key==='3') grade('correct');
+  }
+});
+
+setLevel(1);
+</script>
+</body>
+</html>
